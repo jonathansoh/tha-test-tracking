@@ -12,6 +12,7 @@ import { StatusBadge, TypeBadge } from "@/components/issue-badges";
 import { ManagePanel } from "./manage-panel";
 import { CommentForm } from "./comment-form";
 import { AddAttachments } from "./add-attachments";
+import { AttachmentGallery } from "./attachment-gallery";
 
 const ISSUE_SELECT = `
   *,
@@ -71,6 +72,15 @@ export default async function IssueDetailPage({
     }
   }
 
+  const galleryItems = attachments
+    .map((a) => ({
+      id: a.id,
+      file_type: a.file_type,
+      url: signedByPath.get(a.storage_path) ?? "",
+      file_name: a.file_name,
+    }))
+    .filter((a) => a.url);
+
   const canManage = canManageIssue(profile, issue);
   const isAdmin = profile.role === "admin";
 
@@ -126,37 +136,8 @@ export default async function IssueDetailPage({
               <h2 className="text-sm font-semibold">Attachments</h2>
               <AddAttachments issueId={issue.id} />
             </div>
-            {attachments.length > 0 ? (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {attachments.map((a) => {
-                  const url = signedByPath.get(a.storage_path);
-                  if (!url) return null;
-                  return (
-                    <div
-                      key={a.id}
-                      className="overflow-hidden rounded-md border"
-                    >
-                      {a.file_type === "image" ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={url}
-                          alt={a.file_name ?? "attachment"}
-                          className="h-48 w-full object-contain bg-muted"
-                        />
-                      ) : (
-                        <video
-                          src={url}
-                          controls
-                          className="h-48 w-full bg-black"
-                        />
-                      )}
-                      <p className="truncate px-2 py-1 text-xs text-muted-foreground">
-                        {a.file_name}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
+            {galleryItems.length > 0 ? (
+              <AttachmentGallery attachments={galleryItems} />
             ) : (
               <p className="text-sm text-muted-foreground">
                 No attachments yet.
