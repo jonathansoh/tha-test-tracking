@@ -17,7 +17,11 @@ async function requireAdminProfile() {
   return { profile };
 }
 
-export async function createInvite(role: Role, note: string): Promise<Result> {
+export async function createInvite(
+  role: Role,
+  inviteeName: string,
+  note: string,
+): Promise<Result> {
   const ctx = await requireAdminProfile();
   if ("error" in ctx) return { error: ctx.error };
 
@@ -30,6 +34,7 @@ export async function createInvite(role: Role, note: string): Promise<Result> {
   const { error } = await supabase.from("invites").insert({
     token,
     role,
+    invitee_name: inviteeName.trim() || null,
     note: note.trim() || null,
     created_by: ctx.profile.id,
   });

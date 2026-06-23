@@ -93,6 +93,17 @@ export async function consumeInvite(
     .update({ used_by: created.user.id, used_at: new Date().toISOString() })
     .eq("id", invite.id);
 
+  // Transfer any issues that were assigned to this pending invite to the
+  // now-active account.
+  await admin
+    .from("issues")
+    .update({
+      assigned_to: created.user.id,
+      assigned_invite_id: null,
+      assigned_invite_name: null,
+    })
+    .eq("assigned_invite_id", invite.id);
+
   // Sign the new user in so cookies are set, then go to the dashboard.
   const supabase = await createClient();
   await supabase.auth.signInWithPassword({

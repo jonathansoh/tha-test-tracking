@@ -11,6 +11,7 @@ import {
   setTentativeDate,
 } from "./actions";
 import type { IssueStatus, IssueType } from "@/lib/types";
+import { UNASSIGNED_VALUE, type AssigneeOption } from "@/lib/assignee-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,25 +33,22 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 
-type Assignee = { id: string; username: string };
-const UNASSIGNED = "__unassigned__";
-
 export function ManagePanel({
   issueId,
   type,
   status,
-  assignedTo,
+  assignmentValue,
   tentativeDate,
-  assignees,
+  assigneeOptions,
   canManage,
   isAdmin,
 }: {
   issueId: string;
   type: IssueType;
   status: IssueStatus;
-  assignedTo: string | null;
+  assignmentValue: string;
   tentativeDate: string | null;
-  assignees: Assignee[];
+  assigneeOptions: AssigneeOption[];
   canManage: boolean;
   isAdmin: boolean;
 }) {
@@ -156,10 +154,10 @@ export function ManagePanel({
         <div className="space-y-2">
           <Label>Assigned to</Label>
           <Select
-            value={assignedTo ?? UNASSIGNED}
+            value={assignmentValue}
             onValueChange={(v) =>
               run(
-                () => assignIssue(issueId, v === UNASSIGNED ? null : v),
+                () => assignIssue(issueId, v === UNASSIGNED_VALUE ? null : v),
                 "Assignee updated.",
               )
             }
@@ -168,10 +166,10 @@ export function ManagePanel({
               <SelectValue placeholder="Unassigned" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={UNASSIGNED}>Unassigned</SelectItem>
-              {assignees.map((a) => (
-                <SelectItem key={a.id} value={a.id}>
-                  {a.username}
+              <SelectItem value={UNASSIGNED_VALUE}>Unassigned</SelectItem>
+              {assigneeOptions.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
                 </SelectItem>
               ))}
             </SelectContent>

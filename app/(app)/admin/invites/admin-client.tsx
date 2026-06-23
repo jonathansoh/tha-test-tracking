@@ -30,6 +30,7 @@ type Invite = {
   id: string;
   token: string;
   role: Role;
+  invitee_name: string | null;
   note: string | null;
   used_at: string | null;
   created_at: string;
@@ -65,6 +66,7 @@ export function AdminClient({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [role, setRole] = useState<Role>("user");
+  const [inviteeName, setInviteeName] = useState("");
   const [note, setNote] = useState("");
 
   const [resetUser, setResetUser] = useState<User | null>(null);
@@ -72,11 +74,12 @@ export function AdminClient({
 
   function generate() {
     startTransition(async () => {
-      const res = await createInvite(role, note);
+      const res = await createInvite(role, inviteeName, note);
       if (res.error) {
         toast.error(res.error);
         return;
       }
+      setInviteeName("");
       setNote("");
       if (res.token) await copy(inviteUrl(res.token));
       router.refresh();
@@ -116,7 +119,7 @@ export function AdminClient({
       {/* Generate invite */}
       <section className="space-y-4 rounded-lg border p-4">
         <h2 className="text-sm font-semibold">Generate invite link</h2>
-        <div className="grid gap-3 sm:grid-cols-[140px_1fr_auto] sm:items-end">
+        <div className="grid gap-3 sm:grid-cols-[110px_1fr_1fr_auto] sm:items-end">
           <div className="space-y-1.5">
             <Label>Role</Label>
             <Select
@@ -133,12 +136,21 @@ export function AdminClient({
             </Select>
           </div>
           <div className="space-y-1.5">
+            <Label htmlFor="inviteeName">Name</Label>
+            <Input
+              id="inviteeName"
+              value={inviteeName}
+              onChange={(e) => setInviteeName(e.target.value)}
+              placeholder="e.g. Sarah"
+            />
+          </div>
+          <div className="space-y-1.5">
             <Label htmlFor="note">Note (optional)</Label>
             <Input
               id="note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="e.g. for Sarah in QA"
+              placeholder="e.g. QA team"
             />
           </div>
           <Button onClick={generate} disabled={pending}>
@@ -146,7 +158,8 @@ export function AdminClient({
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          The link is copied to your clipboard. Share it with the person — they
+          The name lets you assign issues to this person before they activate
+          their account. The link is copied to your clipboard — share it; they
           set their own username and password.
         </p>
       </section>
@@ -166,7 +179,12 @@ export function AdminClient({
                 className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm"
               >
                 <div className="min-w-0">
-                  <span className="font-medium capitalize">{i.role}</span>
+                  <span className="font-medium">
+                    {i.invitee_name || "Unnamed"}
+                  </span>
+                  <span className="ml-2 text-xs capitalize text-muted-foreground">
+                    {i.role}
+                  </span>
                   {i.note && (
                     <span className="text-muted-foreground"> · {i.note}</span>
                   )}

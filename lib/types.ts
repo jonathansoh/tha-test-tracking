@@ -42,6 +42,8 @@ export interface Issue {
   status: IssueStatus;
   raised_by: string;
   assigned_to: string | null;
+  assigned_invite_id: string | null;
+  assigned_invite_name: string | null;
   tentative_completion_date: string | null;
   completed_at: string | null;
   review_comment: string | null;

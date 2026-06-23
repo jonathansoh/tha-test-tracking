@@ -13,6 +13,7 @@ import {
   fileKind,
 } from "@/lib/constants";
 import type { IssueType } from "@/lib/types";
+import { UNASSIGNED_VALUE, type AssigneeOption } from "@/lib/assignee-utils";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,15 +27,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-type Assignee = { id: string; username: string };
-const UNASSIGNED = "__unassigned__";
-
-export function NewIssueForm({ assignees }: { assignees: Assignee[] }) {
+export function NewIssueForm({
+  assigneeOptions,
+}: {
+  assigneeOptions: AssigneeOption[];
+}) {
   const router = useRouter();
   const [type, setType] = useState<IssueType>("bug");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [assignedTo, setAssignedTo] = useState(UNASSIGNED);
+  const [assignedTo, setAssignedTo] = useState(UNASSIGNED_VALUE);
   const [tentativeDate, setTentativeDate] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -104,7 +106,7 @@ export function NewIssueForm({ assignees }: { assignees: Assignee[] }) {
       type,
       title,
       description,
-      assignedTo: assignedTo === UNASSIGNED ? null : assignedTo,
+      assignedTo: assignedTo === UNASSIGNED_VALUE ? null : assignedTo,
       tentativeDate: tentativeDate || null,
       attachments: uploaded,
     });
@@ -177,16 +179,16 @@ export function NewIssueForm({ assignees }: { assignees: Assignee[] }) {
           </Label>
           <Select
             value={assignedTo}
-            onValueChange={(v) => setAssignedTo(v ?? UNASSIGNED)}
+            onValueChange={(v) => setAssignedTo(v ?? UNASSIGNED_VALUE)}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Unassigned" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={UNASSIGNED}>Unassigned</SelectItem>
-              {assignees.map((a) => (
-                <SelectItem key={a.id} value={a.id}>
-                  {a.username}
+              <SelectItem value={UNASSIGNED_VALUE}>Unassigned</SelectItem>
+              {assigneeOptions.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
                 </SelectItem>
               ))}
             </SelectContent>

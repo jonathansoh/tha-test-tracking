@@ -1,14 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
+import { getAssigneeOptions } from "@/lib/assignees";
 import { NewIssueForm } from "./new-issue-form";
 
 export const metadata = { title: "Raise an issue — Issue Tracker" };
 
 export default async function NewIssuePage() {
-  const supabase = await createClient();
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("id, username")
-    .order("username");
+  const assigneeOptions = await getAssigneeOptions();
 
   return (
     <div className="space-y-6">
@@ -19,7 +15,7 @@ export default async function NewIssuePage() {
           automatically.
         </p>
       </div>
-      <NewIssueForm assignees={profiles ?? []} />
+      <NewIssueForm assigneeOptions={assigneeOptions} />
     </div>
   );
 }

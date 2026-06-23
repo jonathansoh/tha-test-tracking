@@ -11,7 +11,7 @@ export default async function AdminInvitesPage() {
   const [{ data: invites }, { data: users }] = await Promise.all([
     supabase
       .from("invites")
-      .select("id, token, role, note, used_at, created_at")
+      .select("id, token, role, invitee_name, note, used_at, created_at")
       .order("created_at", { ascending: false }),
     supabase
       .from("profiles")

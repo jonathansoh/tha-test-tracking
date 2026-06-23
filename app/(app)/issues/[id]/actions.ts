@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, canManageIssue } from "@/lib/auth";
 import { logError } from "@/lib/logger";
+import { parseAssignee } from "@/lib/assignee-utils";
 
 type ActionResult = { error?: string; ok?: true };
 
@@ -96,10 +97,10 @@ export async function reviewFeature(
   return { ok: true };
 }
 
-// --- Assignment: admin only ---------------------------------------------
+// --- Assignment: admin only (active user or pending invite) -------------
 export async function assignIssue(
   issueId: string,
-  assigneeId: string | null,
+  assigneeValue: string | null,
 ): Promise<ActionResult> {
   const ctx = await loadContext(issueId);
   if ("error" in ctx) return { error: ctx.error };
@@ -109,12 +110,29 @@ export async function assignIssue(
     return { error: "Only an admin can change the assignee." };
   }
 
-  const { error } = await supabase
-    .from("issues")
-    .update({ assigned_to: assigneeId })
-    .eq("id", issueId);
+  const assignee = parseAssignee(assigneeValue);
+  const patch: {
+    assigned_to: string | null;
+    assigned_invite_id: string | null;
+    assigned_invite_name: string | null;
+  } = { assigned_to: null, assigned_invite_id: null, assigned_invite_name: null };
+
+  if (assignee.kind === "user") {
+    patch.assigned_to = assignee.id;
+  } else if (assignee.kind === "invite") {
+    patch.assigned_invite_id = assignee.id;
+    const { data: inv } = await supabase
+      .from("invites")
+      .select("invitee_name, note")
+      .eq("id", assignee.id)
+      .maybeSingle();
+    patch.assigned_invite_name =
+      inv?.invitee_name || inv?.note || "Pending invite";
+  }
+
+  const { error } = await supabase.from("issues").update(patch).eq("id", issueId);
   if (error) {
-    logError("issues.assign", error, { issueId, assigneeId });
+    logError("issues.assign", error, { issueId, assigneeValue });
     return { error: "Could not update the assignee." };
   }
 

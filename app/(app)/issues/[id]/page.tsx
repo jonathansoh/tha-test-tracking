@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { canManageIssue, requireProfile } from "@/lib/auth";
+import { getAssigneeOptions } from "@/lib/assignees";
+import { assignmentValue } from "@/lib/assignee-utils";
 import { MEDIA_BUCKET } from "@/lib/constants";
 import { formatKulDate, formatKulDateTime } from "@/lib/time";
 import type { Attachment, Comment, Issue } from "@/lib/types";
@@ -36,7 +38,7 @@ export default async function IssueDetailPage({
     reviewed_by_profile?: { id: string; username: string } | null;
   };
 
-  const [{ data: attachmentsData }, { data: commentsData }, { data: profiles }] =
+  const [{ data: attachmentsData }, { data: commentsData }, assigneeOptions] =
     await Promise.all([
       supabase
         .from("attachments")
@@ -48,7 +50,7 @@ export default async function IssueDetailPage({
         .select("*, author:profiles!comments_author_id_fkey(id,username)")
         .eq("issue_id", id)
         .order("created_at"),
-      supabase.from("profiles").select("id, username").order("username"),
+      getAssigneeOptions(),
     ]);
 
   const attachments = (attachmentsData ?? []) as Attachment[];
@@ -189,7 +191,12 @@ export default async function IssueDetailPage({
             />
             <Meta
               label="Assigned to"
-              value={issue.assigned_to_profile?.username ?? "Unassigned"}
+              value={
+                issue.assigned_to_profile?.username ??
+                (issue.assigned_invite_name
+                  ? `${issue.assigned_invite_name} (pending)`
+                  : "Unassigned")
+              }
             />
             <Meta
               label="Tentative completion"
@@ -211,9 +218,9 @@ export default async function IssueDetailPage({
             issueId={issue.id}
             type={issue.type}
             status={issue.status}
-            assignedTo={issue.assigned_to}
+            assignmentValue={assignmentValue(issue)}
             tentativeDate={issue.tentative_completion_date}
-            assignees={profiles ?? []}
+            assigneeOptions={assigneeOptions}
             canManage={canManage}
             isAdmin={isAdmin}
           />

@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { logError } from "@/lib/logger";
+import { parseAssignee } from "@/lib/assignee-utils";
 import type { IssueType } from "@/lib/types";
 
 export type NewIssueInput = {
@@ -40,6 +41,23 @@ export async function createIssue(
   // Features await review; bugs are open (in progress) immediately.
   const status = input.type === "feature" ? "pending_review" : "in_progress";
 
+  // Assignee may be an active user or a pending invite.
+  const assignee = parseAssignee(input.assignedTo);
+  let assigned_to: string | null = null;
+  let assigned_invite_id: string | null = null;
+  let assigned_invite_name: string | null = null;
+  if (assignee.kind === "user") {
+    assigned_to = assignee.id;
+  } else if (assignee.kind === "invite") {
+    assigned_invite_id = assignee.id;
+    const { data: inv } = await supabase
+      .from("invites")
+      .select("invitee_name, note")
+      .eq("id", assignee.id)
+      .maybeSingle();
+    assigned_invite_name = inv?.invitee_name || inv?.note || "Pending invite";
+  }
+
   const { error: issueErr } = await supabase.from("issues").insert({
     id: input.id,
     type: input.type,
@@ -47,7 +65,9 @@ export async function createIssue(
     description: input.description.trim(),
     status,
     raised_by: user.id,
-    assigned_to: input.assignedTo || null,
+    assigned_to,
+    assigned_invite_id,
+    assigned_invite_name,
     tentative_completion_date: input.tentativeDate || null,
   });
   if (issueErr) {

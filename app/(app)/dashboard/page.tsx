@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { requireProfile } from "@/lib/auth";
 import { formatKulDate, formatKulDateTime } from "@/lib/time";
 import type { Issue, IssueStatus } from "@/lib/types";
 import { StatusBadge, TypeBadge } from "@/components/issue-badges";
+import { DashboardReviewActions } from "./review-actions";
 import { cn } from "@/lib/utils";
 
 export const metadata = { title: "Dashboard — Issue Tracker" };
@@ -33,6 +35,8 @@ export default async function DashboardPage({
     TABS.find((t) => t.key === tabParam)?.key ?? "in_progress";
 
   const supabase = await createClient();
+  const profile = await requireProfile();
+  const isAdmin = profile.role === "admin";
 
   let query = supabase
     .from("issues")
@@ -105,6 +109,9 @@ export default async function DashboardPage({
                 <th className="px-3 py-2 font-medium">Raised</th>
                 <th className="px-3 py-2 font-medium">Assigned</th>
                 <th className="px-3 py-2 font-medium">Target</th>
+                {isAdmin && (
+                  <th className="px-3 py-2 text-right font-medium">Review</th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -137,13 +144,26 @@ export default async function DashboardPage({
                     {formatKulDate(issue.created_at)}
                   </td>
                   <td className="px-3 py-2 text-muted-foreground">
-                    {issue.assigned_to_profile?.username ?? "—"}
+                    {issue.assigned_to_profile?.username ??
+                      (issue.assigned_invite_name
+                        ? `${issue.assigned_invite_name} (pending)`
+                        : "—")}
                   </td>
                   <td className="whitespace-nowrap px-3 py-2 text-muted-foreground">
                     {issue.tentative_completion_date
                       ? formatKulDate(issue.tentative_completion_date)
                       : "—"}
                   </td>
+                  {isAdmin && (
+                    <td className="px-3 py-2">
+                      <div className="flex justify-end">
+                        {issue.type === "feature" &&
+                        issue.status === "pending_review" ? (
+                          <DashboardReviewActions issueId={issue.id} />
+                        ) : null}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
