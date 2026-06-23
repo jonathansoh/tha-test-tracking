@@ -41,9 +41,17 @@ Enforced both in server actions and Postgres RLS (`is_admin()` helper).
 ## Environment variables
 See `.env.example`. `SUPABASE_SERVICE_ROLE_KEY` is server-only (never expose to the client).
 
+## Deployment
+- **Production:** https://tha-test-tracking.vercel.app (Vercel project `vilor-marketing/tha-test-tracking`)
+- **GitHub:** https://github.com/jonathansoh/tha-test-tracking
+- **Supabase:** project `ztjoxdzrtiysinltkcvg` (separate account; migrations applied via `npm run db:migrate`)
+- Env vars set in Vercel for Production (+ Development). Preview env not set (no Git preview wiring yet).
+- Redeploy: `vercel deploy --prod` from the project root.
+
 ## Change Log
 
 ### 2026-06-23
+- Deployed to Vercel production; Supabase schema applied; first admin `jonathansoh` seeded.
 - Initial build: Next.js + Supabase issue tracker.
 - Schema (profiles, invites, issues, attachments, comments) with RLS + private storage bucket.
 - Username-only auth via invite links; create-admin seed script.

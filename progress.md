@@ -17,20 +17,18 @@ Supabase backend (Postgres + Auth + Storage). Username-only auth via admin invit
 - [x] Project docs + production build passing
 
 ## Current Work
-Waiting on Supabase credentials from the user (different account) to:
-1. Fill real values in `.env.local`
-2. Run `supabase/migrations/0001_init.sql` in the SQL Editor
-3. Seed the first admin and smoke-test the flow end-to-end
+Shipped. App is live in production at https://tha-test-tracking.vercel.app.
 
 ## Blocked/Issues
-- Needs the new Supabase project's URL, anon/publishable key, and service_role key.
+- None. (Preview-env vars not set in Vercel — only needed if Git preview deploys are wired up.)
 
 ## Next Steps
-1. Add real env vars → run migration → `npm run create-admin -- <user> <pass>`.
-2. `npm run dev`, log in, generate an invite, raise a bug + a feature, test accept/reject.
-3. Deploy to Vercel; set the 5 env vars; set `NEXT_PUBLIC_APP_URL` to the prod URL.
+- Optional: connect the GitHub repo to Vercel for auto-deploys (then add Preview env vars).
+- Optional: make the GitHub repo private; rotate the DB password shared during setup.
 
 ## Updates Log
 ### 2026-06-23
 - Built the full application end-to-end; `npm run build` passes.
-- Pending: live Supabase wiring + manual verification.
+- Wired live Supabase (project ztjoxdzrtiysinltkcvg): applied schema + grants, created bucket.
+- Seeded admin `jonathansoh`; ran auth + RLS smoke test (login → insert → select → cleanup).
+- Deployed to Vercel production (vilor-marketing/tha-test-tracking); verified /login + redirects.
