@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, canManageIssue } from "@/lib/auth";
 import { logError } from "@/lib/logger";
-import type { Profile } from "@/lib/types";
 
 type ActionResult = { error?: string; ok?: true };
 
@@ -203,5 +202,3 @@ export async function reopenIssue(issueId: string): Promise<ActionResult> {
   refresh(issueId);
   return { ok: true };
 }
-
-export type { Profile };
