@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { synthEmail } from "@/lib/username";
+import { logWarn } from "@/lib/logger";
 
 export type LoginState = { error?: string };
 
@@ -24,6 +25,9 @@ export async function signIn(
   });
 
   if (error) {
+    // Log the real reason (bad credentials vs. misconfig/network) without
+    // exposing it to the user.
+    logWarn("auth.signIn", error.message, { username, code: error.status });
     return { error: "Invalid username or password." };
   }
 

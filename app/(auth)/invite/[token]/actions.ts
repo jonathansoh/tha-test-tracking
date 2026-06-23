@@ -9,6 +9,7 @@ import {
   synthEmail,
   USERNAME_RULE,
 } from "@/lib/username";
+import { logError } from "@/lib/logger";
 
 export type InviteState = { error?: string };
 
@@ -68,6 +69,9 @@ export async function consumeInvite(
       user_metadata: { username: uname },
     });
   if (createErr || !created.user) {
+    logError("invite.createUser", createErr ?? "no user returned", {
+      username: uname,
+    });
     return { error: "Could not create your account. Please try again." };
   }
 
@@ -78,6 +82,7 @@ export async function consumeInvite(
     role: invite.role,
   });
   if (profileErr) {
+    logError("invite.createProfile", profileErr, { username: uname });
     await admin.auth.admin.deleteUser(created.user.id);
     return { error: "Could not finish setup. Please try again." };
   }

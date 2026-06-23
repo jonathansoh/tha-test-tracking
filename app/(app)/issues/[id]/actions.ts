@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile, canManageIssue } from "@/lib/auth";
+import { logError } from "@/lib/logger";
 import type { Profile } from "@/lib/types";
 
 type ActionResult = { error?: string; ok?: true };
@@ -47,7 +48,10 @@ export async function addComment(
     author_id: user.id,
     body,
   });
-  if (error) return { error: "Could not post your comment." };
+  if (error) {
+    logError("comments.add", error, { issueId, userId: user.id });
+    return { error: "Could not post your comment." };
+  }
 
   refresh(issueId);
   return { ok: true };
@@ -84,7 +88,10 @@ export async function reviewFeature(
       reviewed_at: new Date().toISOString(),
     })
     .eq("id", issueId);
-  if (error) return { error: "Could not save the decision." };
+  if (error) {
+    logError("issues.review", error, { issueId, decision });
+    return { error: "Could not save the decision." };
+  }
 
   refresh(issueId);
   return { ok: true };
@@ -107,7 +114,10 @@ export async function assignIssue(
     .from("issues")
     .update({ assigned_to: assigneeId })
     .eq("id", issueId);
-  if (error) return { error: "Could not update the assignee." };
+  if (error) {
+    logError("issues.assign", error, { issueId, assigneeId });
+    return { error: "Could not update the assignee." };
+  }
 
   refresh(issueId);
   return { ok: true };
@@ -130,7 +140,10 @@ export async function setTentativeDate(
     .from("issues")
     .update({ tentative_completion_date: date || null })
     .eq("id", issueId);
-  if (error) return { error: "Could not update the date." };
+  if (error) {
+    logError("issues.setDate", error, { issueId, date });
+    return { error: "Could not update the date." };
+  }
 
   refresh(issueId);
   return { ok: true };
@@ -153,7 +166,10 @@ export async function markComplete(issueId: string): Promise<ActionResult> {
     .from("issues")
     .update({ status: "completed", completed_at: new Date().toISOString() })
     .eq("id", issueId);
-  if (error) return { error: "Could not mark as completed." };
+  if (error) {
+    logError("issues.complete", error, { issueId });
+    return { error: "Could not mark as completed." };
+  }
 
   refresh(issueId);
   return { ok: true };
@@ -179,7 +195,10 @@ export async function reopenIssue(issueId: string): Promise<ActionResult> {
     .from("issues")
     .update({ status: next, completed_at: null })
     .eq("id", issueId);
-  if (error) return { error: "Could not reopen the issue." };
+  if (error) {
+    logError("issues.reopen", error, { issueId });
+    return { error: "Could not reopen the issue." };
+  }
 
   refresh(issueId);
   return { ok: true };

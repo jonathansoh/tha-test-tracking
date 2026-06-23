@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { logError } from "@/lib/logger";
 import type { IssueType } from "@/lib/types";
 
 export type NewIssueInput = {
@@ -50,6 +51,7 @@ export async function createIssue(
     tentative_completion_date: input.tentativeDate || null,
   });
   if (issueErr) {
+    logError("issues.create", issueErr, { userId: user.id, type: input.type });
     return { error: "Could not save the issue. Please try again." };
   }
 
@@ -66,6 +68,7 @@ export async function createIssue(
     );
     if (attachErr) {
       // The issue is saved; surface a soft warning rather than failing hard.
+      logError("issues.attachments", attachErr, { issueId: input.id });
       return { error: "Issue saved, but attachments failed to record." };
     }
   }

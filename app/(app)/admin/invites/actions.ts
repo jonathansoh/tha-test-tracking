@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/auth";
+import { logError } from "@/lib/logger";
 import type { Role } from "@/lib/types";
 
 type Result = { error?: string; ok?: true; token?: string };
@@ -32,7 +33,10 @@ export async function createInvite(role: Role, note: string): Promise<Result> {
     note: note.trim() || null,
     created_by: ctx.profile.id,
   });
-  if (error) return { error: "Could not create the invite." };
+  if (error) {
+    logError("admin.createInvite", error, { role });
+    return { error: "Could not create the invite." };
+  }
 
   revalidatePath("/admin/invites");
   return { ok: true, token };
@@ -44,7 +48,10 @@ export async function revokeInvite(inviteId: string): Promise<Result> {
 
   const supabase = await createClient();
   const { error } = await supabase.from("invites").delete().eq("id", inviteId);
-  if (error) return { error: "Could not revoke the invite." };
+  if (error) {
+    logError("admin.revokeInvite", error, { inviteId });
+    return { error: "Could not revoke the invite." };
+  }
 
   revalidatePath("/admin/invites");
   return { ok: true };
@@ -65,7 +72,10 @@ export async function resetPassword(
   const { error } = await admin.auth.admin.updateUserById(userId, {
     password: newPassword,
   });
-  if (error) return { error: "Could not reset the password." };
+  if (error) {
+    logError("admin.resetPassword", error, { userId });
+    return { error: "Could not reset the password." };
+  }
 
   return { ok: true };
 }
