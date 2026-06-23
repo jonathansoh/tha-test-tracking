@@ -178,6 +178,12 @@ export function NewIssueForm({
             Assign to <span className="text-muted-foreground">(optional)</span>
           </Label>
           <Select
+            items={{
+              [UNASSIGNED_VALUE]: "Unassigned",
+              ...Object.fromEntries(
+                assigneeOptions.map((o) => [o.value, o.label]),
+              ),
+            }}
             value={assignedTo}
             onValueChange={(v) => setAssignedTo(v ?? UNASSIGNED_VALUE)}
           >

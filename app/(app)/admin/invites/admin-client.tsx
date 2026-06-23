@@ -123,6 +123,7 @@ export function AdminClient({
           <div className="space-y-1.5">
             <Label>Role</Label>
             <Select
+              items={{ user: "User", admin: "Admin" }}
               value={role}
               onValueChange={(v) => v && setRole(v as Role)}
             >

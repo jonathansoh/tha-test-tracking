@@ -93,6 +93,12 @@ export function ManagePanel({
   const isFeatureReview = type === "feature" && status === "pending_review";
   const isClosed = status === "completed" || status === "rejected";
 
+  // value -> label map so the trigger shows the name, not the raw value.
+  const assigneeItems: Record<string, string> = {
+    [UNASSIGNED_VALUE]: "Unassigned",
+    ...Object.fromEntries(assigneeOptions.map((o) => [o.value, o.label])),
+  };
+
   // Nothing actionable for this user.
   if (!canManage) return null;
 
@@ -154,6 +160,7 @@ export function ManagePanel({
         <div className="space-y-2">
           <Label>Assigned to</Label>
           <Select
+            items={assigneeItems}
             value={assignmentValue}
             onValueChange={(v) =>
               run(

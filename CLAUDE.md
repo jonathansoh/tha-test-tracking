@@ -41,6 +41,10 @@ Enforced both in server actions and Postgres RLS (`is_admin()` helper).
 ## Environment variables
 See `.env.example`. `SUPABASE_SERVICE_ROLE_KEY` is server-only (never expose to the client).
 
+## Git conventions
+- **Do NOT add a `Co-Authored-By: Claude ...` trailer** (or any AI co-author line) to commit
+  messages. Commits are authored as the user only.
+
 ## Deployment
 - **Production:** https://tha-test-tracking.vercel.app (Vercel project `vilor-marketing/tha-test-tracking`)
 - **GitHub:** https://github.com/jonathansoh/tha-test-tracking
