@@ -11,6 +11,7 @@ import type { Attachment, Comment, Issue } from "@/lib/types";
 import { StatusBadge, TypeBadge } from "@/components/issue-badges";
 import { ManagePanel } from "./manage-panel";
 import { CommentForm } from "./comment-form";
+import { AddAttachments } from "./add-attachments";
 
 const ISSUE_SELECT = `
   *,
@@ -120,9 +121,12 @@ export default async function IssueDetailPage({
             </section>
           )}
 
-          {attachments.length > 0 && (
-            <section>
-              <h2 className="mb-2 text-sm font-semibold">Attachments</h2>
+          <section>
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="text-sm font-semibold">Attachments</h2>
+              <AddAttachments issueId={issue.id} />
+            </div>
+            {attachments.length > 0 ? (
               <div className="grid gap-3 sm:grid-cols-2">
                 {attachments.map((a) => {
                   const url = signedByPath.get(a.storage_path);
@@ -153,8 +157,12 @@ export default async function IssueDetailPage({
                   );
                 })}
               </div>
-            </section>
-          )}
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No attachments yet.
+              </p>
+            )}
+          </section>
 
           {/* Comments */}
           <section className="space-y-3">

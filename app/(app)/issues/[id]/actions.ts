@@ -57,6 +57,43 @@ export async function addComment(
   return { ok: true };
 }
 
+// --- Add attachments to an existing issue: any signed-in user -----------
+export async function addAttachments(
+  issueId: string,
+  attachments: {
+    path: string;
+    file_type: "image" | "video";
+    mime_type: string;
+    file_name: string;
+  }[],
+): Promise<ActionResult> {
+  if (attachments.length === 0) return { error: "No files to add." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You are not signed in." };
+
+  const { error } = await supabase.from("attachments").insert(
+    attachments.map((a) => ({
+      issue_id: issueId,
+      storage_path: a.path,
+      file_type: a.file_type,
+      mime_type: a.mime_type,
+      file_name: a.file_name,
+      uploaded_by: user.id,
+    })),
+  );
+  if (error) {
+    logError("attachments.add", error, { issueId, userId: user.id });
+    return { error: "Could not add the files." };
+  }
+
+  refresh(issueId);
+  return { ok: true };
+}
+
 // --- Feature review: admin or assignee ----------------------------------
 export async function reviewFeature(
   issueId: string,
